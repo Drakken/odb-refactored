@@ -1,0 +1,95 @@
+
+ ODB Refactoring Notes
+-----------------------
+
+ Behavior
+----------
+
+~is_dep doesn't reliably indicate whether a package is a dependency.
+All it indicates is whether the use specified the package on the command line.
+So what happens if an unwary user specifies a dependency on the command line?
+
+?? What if the vreq of a dep is EQ <old version>?
+Should get_package have an option to get old versions?
+
+
+--------------------------------------------------------------------------------
+ Redundancy
+------------
+
+The string-matching code in Dep.get_reqs re-implements starts_with.
+
+Redundant test:
+> if !sudo then ... else ( ... if not !sudo ... )
+
+The first case in install_full handles all unforced deps,
+so the second case is partially redundant:
+>	(* warn if a dependency is already installed *)
+>  | Some v when not force_me ->
+>    let cat, arg = if is_dep then "Dependency", "--force-all" else "Package", "--force" in
+
+There are a lot of local functions that share
+little or no data with the surrounding function.
+
+--------------------------------------------------------------------------------
+ Types
+-------
+
+Is there any reason the keys of the property lists can't be an enumeration?
+i.e., is there any chance that properties might be added without their names
+being known at compile time? 
+
+The function passed to indir should take the new working directory as argument.
+
+--------------------------------------------------------------------------------
+ Names
+-------
+
+There are too many args called "p". 
+"p" could be a package record, package id, prop list, or file-system path.
+In main, "ps" is a list of pids:
+      let ps = flat_map (get_remote |- parse_package_file) !pkgs_to_install in print_list ps
+
+The globle variable reqs is a list of affected (dependent) user packages.  
+They don't seem to be required for anything in odb,
+ so why are they stored in a variable called "reqs"?
+
+Dep.meta returns a list of reqs (user packages).  Why is it called "meta"?
+
+~p and ~n are obscure, especially ~n.
+
+> [pkg; vreq] -> to_pkg pkg, ...
+"pkg" is a string, not a package object.  "pid" would be a better name.
+
+type ver_comp: the name should be "version_component".
+With type inference, type names aren't written very often,
+so there's not much to be gained by abbreviating them.
+
+Why is the option to install ALL packageS called "package"?
+
+The name of the "--package" option exposes implementation details to the user.
+It should be called something like "--all" or "install-all".
+
+--------------------------------------------------------------------------------
+ Overcomplication
+------------------
+
+The logic involving main_act is unnecessarily convoluted.
+Install may be the most common option, but the default is to list pkgs.
+So there should a List option, and it should be the default.
+
+--------------------------------------------------------------------------------
+ Questions
+-----------
+
+Why is Dep.get_users called from install_from_current_dir,
+ only to be returned to install_full?
+
+
+--------------------------------------------------------------------------------
+ Major Surgery
+---------------
+
+I don't understand the point of using property lists in ML.
+My inclination would be to replace properties with fields in the pkg type.
+That way deps can be parsed once and stored in structured form.

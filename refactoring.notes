@@ -61,22 +61,32 @@ Dep.meta returns a list of reqs (user packages).  Why is it called "meta"?
 > [pkg; vreq] -> to_pkg pkg, ...
 "pkg" is a string, not a package object.  "pid" would be a better name.
 
-type ver_comp: the name should be "version_component".
+type ver_comp: the name should be "version_component" or "Version.component".
 With type inference, type names aren't written very often,
 so there's not much to be gained by abbreviating them.
 
-Why is the option to install ALL packageS called "package"?
+Why is the option to install ALL packageS called "--package"?
 
 The name of the "--package" option exposes implementation details to the user.
 It should be called something like "--all" or "install-all".
+
+"install_list" is somewhat ambiguous.  It doesn't indicate the type of the list elements.
 
 --------------------------------------------------------------------------------
  Overcomplication
 ------------------
 
 The logic involving main_act is unnecessarily convoluted.
-Install may be the most common option, but the default is to list pkgs.
-So there should a List option, and it should be the default.
+Install may be the most common option, but the no-arg default is to list pkgs.
+So listing and installing should be handled together.
+
+getenv_def is redundant with getenv, "~def" is cryptic (could mean "define" or "definition")
+
+--------------------------------------------------------------------------------
+ Organization
+--------------
+
+Conf module distinguishes config variables from other data.
 
 --------------------------------------------------------------------------------
  Questions
